@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body { 
+            background-color: #f4f6f9; 
+            font-family: 'Arial', sans-serif;
+        }
+        .upload-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #uploadedFileName {
+            display: none;
+        }
+        #analyzeButton {
+            display: none;
+        }
+        .result-card {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-container text-center">
+            <h2 class="mb-4">AI Image Analyzer</h2>
+            
+            <div class="mb-3">
+                <input type="file" id="imageUpload" class="form-control" accept="image/*">
+                <input type="text" id="uploadedFileName" class="form-control mt-2" readonly>
+                <button id="analyzeButton" class="btn btn-primary mt-3">Analyze Image</button>
+            </div>
+
+            <div id="resultContainer">
+                <div id="uploadedImageCard" class="card result-card" style="display:none;">
+                    <div class="card-header">Uploaded Image</div>
+                    <div class="card-body text-center">
+                        <img id="uploadedImage" src="" class="img-fluid" alt="Uploaded Image">
+                    </div>
+                </div>
+
+                <div id="analysisResultCard" class="card result-card" style="display:none;">
+                    <div class="card-header">AI Analysis Results</div>
+                    <div class="card-body">
+                        <div id="personInfo"></div>
+                        <div id="sceneInfo"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Face Detection & Analysis</h1>
+        
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="webcam-tab" data-bs-toggle="tab" href="#webcam">Webcam</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="upload-tab" data-bs-toggle="tab" href="#upload">Upload Image</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="gallery-tab" data-bs-toggle="tab" href="#gallery">Gallery</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="webcam">
+                                <div class="text-center mb-3">
+                                    <button id="toggleCamera" class="btn btn-primary me-2">Start Camera</button>
+                                    <button id="takeSnapshot" class="btn btn-success me-2" disabled>
+                                        <i class="bi bi-camera"></i> Take Snapshot
+                                    </button>
+                                    <div class="btn-group">
+                                        <button id="shareButton" class="btn btn-info" disabled>
+                                            <i class="bi bi-share"></i> Share
+                                        </button>
+                                        <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span class="visually-hidden">Toggle Share Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" data-platform="facebook">Share to Facebook</a></li>
+                                            <li><a class="dropdown-item" href="#" data-platform="instagram">Share to Instagram</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="video-container">
+                                    <img id="videoFeed" style="display: none;" class="img-fluid">
+                                </div>
+                                <div id="analysisResults" class="mt-3 analysis-box">
+                                    <h5>Analysis Results</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="person-details">
+                                                <h6>Person Details</h6>
+                                                <div id="personInfo">No person detected</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="scene-details">
+                                                <h6>Scene Analysis</h6>
+                                                <div id="sceneInfo">Camera is off</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="upload">
+                                <form id="upload-form" class="text-center">
+                                    <div class="mb-3">
+                                        <label for="imageUpload" class="form-label">Choose an image</label>
+                                        <input type="file" class="form-control" id="imageUpload" accept="image/*">
+                                        <input type="text" id="uploadedFileName" class="form-control mt-2" readonly style="display:none;">
+                                    </div>
+                                    <button id="analyzeButton" type="button" class="btn btn-primary" style="display:none;">Analyze Image</button>
+                                </form>
+                                <div id="uploadResults" class="mt-4">
+                                    <div id="uploadedImageCard" class="card" style="display:none;">
+                                        <div class="card-header">Uploaded Image</div>
+                                        <div class="card-body text-center">
+                                            <img id="uploadedImage" src="" class="img-fluid" alt="Uploaded Image">
+                                        </div>
+                                    </div>
+                                    <div id="analysisResultCard" class="card mt-3" style="display:none;">
+                                        <div class="card-header">AI Analysis Results</div>
+                                        <div class="card-body">
+                                            <div id="uploadPersonInfo"></div>
+                                            <div id="uploadSceneInfo"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="gallery">
+                                <div class="gallery-container">
+                                    <h5 class="mb-3">Saved Snapshots</h5>
+                                    <div id="snapshotGallery" class="row g-3">
+                                        <!-- Snapshots will be dynamically added here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for sharing -->
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="shareModalLabel">Share Photo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="share-preview mb-3">
+                        <img id="sharePreview" class="img-fluid" src="" alt="Share preview">
+                    </div>
+                    <div class="form-group">
+                        <label for="shareCaption">Caption</label>
+                        <textarea id="shareCaption" class="form-control" rows="3" placeholder="Add a caption..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmShare">Share</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
